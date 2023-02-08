@@ -7,7 +7,7 @@
 		"start": "ts-node src/index.ts"
 	},
 	"keywords": [],
-	"author": "test",
+	"author": "arihantbansal",
 	"license": "ISC",
 	"devDependencies": {
 		"ts-node": "^10.8.0",

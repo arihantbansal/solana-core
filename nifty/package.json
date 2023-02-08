@@ -1,7 +1,7 @@
 {
-	"name": "shipoorcoin",
+	"name": "nifty",
 	"version": "1.0.0",
-	"description": "coin for the shipoors, by the shipoors - buildspace core 2",
+	"description": "nfts on solana - buildspace core 2",
 	"main": "index.ts",
 	"scripts": {
 		"start": "ts-node src/index.ts"
@@ -15,11 +15,11 @@
 	},
 	"dependencies": {
 		"@metaplex-foundation/js": "^0.18.0",
-		"@metaplex-foundation/mpl-token-metadata": "^2.8.3",
-		"@solana/spl-token": "0.2.0",
+		"@solana/spl-token": "^0.3.6",
 		"@solana/web3.js": "^1.73.0",
 		"bigint-buffer": "^1.1.5",
 		"dotenv": "^16.0.1",
 		"fs": "^0.0.1-security"
 	}
 }
+
