@@ -1,0 +1,8 @@
+{
+  "name": "candy-sugar",
+  "version": "1.0.0",
+  "description": "candy machine and sugar cli test - buildspace core 2",
+  "main": "index.js",
+  "license": "MIT",
+  "author": "arihantbansal",
+}

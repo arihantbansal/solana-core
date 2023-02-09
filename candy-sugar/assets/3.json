@@ -1,0 +1,24 @@
+{
+    "name": "Derp Cat #4",
+    "symbol": "CAT",
+    "description": "Derp cats being derp cats",
+    "image": "3.png",
+    "attributes": [
+        {
+            "trait_type": "fur",
+            "value": "whitish"
+        },
+        {
+            "trait_type": "face",
+            "value": "surprised"
+        }
+    ],
+    "properties": {
+        "files": [
+            {
+                "uri": "3.png",
+                "type": "image/png"
+            }
+        ]
+    }
+}
