@@ -1,7 +1,10 @@
 {
   "price": 0.69,
   "number": 5,
-  "gatekeeper": null,
+  "gatekeeper": {
+    "gatekeeperNetwork": "ignREusXmGrscGNUesoU9mxfds9AiYTezUKex2PsZV6",
+    "expireOnUse": true
+  },
   "creators": [
     {
       "address": "GsuyNHX76ZGXwisQ2qSyP6nNUgx2DxNtCQXESVswzC6F",
