@@ -12,6 +12,9 @@ pub enum MovieInstruction {
         rating: u8,
         description: String,
     },
+    AddComment {
+        comment: String,
+    },
 }
 
 #[derive(BorshDeserialize)]
@@ -21,23 +24,39 @@ struct MovieReviewPayload {
     description: String,
 }
 
+#[derive(BorshDeserialize)]
+struct CommentPayload {
+    comment: String,
+}
+
 impl MovieInstruction {
     pub fn unpack(input: &[u8]) -> Result<Self, ProgramError> {
         let (&variant, rest) = input
             .split_first()
             .ok_or(ProgramError::InvalidInstructionData)?;
-        let payload = MovieReviewPayload::try_from_slice(rest).unwrap();
         Ok(match variant {
-            0 => Self::AddMovieReview {
-                title: payload.title,
-                rating: payload.rating,
-                description: payload.description,
-            },
-            1 => Self::UpdateMovieReview {
-                title: payload.title,
-                rating: payload.rating,
-                description: payload.description,
-            },
+            0 => {
+                let payload = MovieReviewPayload::try_from_slice(rest).unwrap();
+                Self::AddMovieReview {
+                    title: payload.title,
+                    rating: payload.rating,
+                    description: payload.description,
+                }
+            }
+            1 => {
+                let payload = MovieReviewPayload::try_from_slice(rest).unwrap();
+                Self::UpdateMovieReview {
+                    title: payload.title,
+                    rating: payload.rating,
+                    description: payload.description,
+                }
+            }
+            2 => {
+                let payload = CommentPayload::try_from_slice(rest).unwrap();
+                Self::AddComment {
+                    comment: payload.comment,
+                }
+            }
             _ => return Err(ProgramError::InvalidInstructionData),
         })
     }

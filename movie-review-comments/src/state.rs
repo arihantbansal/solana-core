@@ -6,7 +6,7 @@ use solana_program::{
 
 #[derive(BorshSerialize, BorshDeserialize)]
 pub struct MovieAccountState {
-    pub descriminator: String,
+    pub discriminator: String,
     pub is_initialized: bool,
     pub rating: u8,
     pub title: String,
