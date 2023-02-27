@@ -47,8 +47,8 @@ pub fn add_student_intro(
 
     let initializer = next_account_info(account_info_iter)?;
     let user_account = next_account_info(account_info_iter)?;
-    let system_program = next_account_info(account_info_iter)?;
     let pda_counter = next_account_info(account_info_iter)?;
+    let system_program = next_account_info(account_info_iter)?;
 
     let (pda, bump_seed) = Pubkey::find_program_address(&[initializer.key.as_ref()], program_id);
     if pda != *user_account.key {
