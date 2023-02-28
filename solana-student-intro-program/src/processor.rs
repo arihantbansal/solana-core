@@ -433,19 +433,19 @@ pub fn initialize_token_mint(program_id: &Pubkey, accounts: &[AccountInfo]) -> P
 
     msg!("Token mint account created.");
 
-    invoke_signed(
-        &initialize_mint(
-            token_program.key,
-            token_mint.key,
-            mint_auth.key,
-            Option::None,
-            9,
-        )?,
-        &[token_mint.clone(), sysvar_rent.clone(), mint_auth.clone()],
-        &[&[b"token_mint", &[mint_bump_seed]]],
-    )?;
+    // invoke_signed(
+    //     &initialize_mint(
+    //         token_program.key,
+    //         token_mint.key,
+    //         mint_auth.key,
+    //         Option::None,
+    //         9,
+    //     )?,
+    //     &[token_mint.clone(), sysvar_rent.clone(), mint_auth.clone()],
+    //     &[&[b"token_mint", &[mint_bump_seed]]],
+    // )?;
 
-    msg!("Initialized token mint");
+    // msg!("Initialized token mint");
 
     Ok(())
 }
