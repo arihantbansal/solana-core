@@ -5,6 +5,7 @@ pub enum IntroInstruction {
     InitUserInput { name: String, message: String },
     UpdateStudentIntro { name: String, message: String },
     AddReply { reply: String },
+    InitializeMint,
 }
 
 #[derive(BorshDeserialize, Debug)]
@@ -47,6 +48,7 @@ impl IntroInstruction {
                     reply: payload.reply,
                 }
             }
+            3 => Self::InitializeMint,
             _ => return Err(ProgramError::InvalidInstructionData),
         })
     }
