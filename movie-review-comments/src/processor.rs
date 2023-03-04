@@ -505,8 +505,6 @@ pub fn initialize_token_mint(program_id: &Pubkey, accounts: &[AccountInfo]) -> P
 
 #[cfg(test)]
 mod tests {
-    use solana_program::sysvar::recent_blockhashes;
-
     use {
         super::*,
         assert_matches::*,
@@ -547,10 +545,13 @@ mod tests {
     #[tokio::test]
     async fn test_initialize_mint_instruction() {
         let program_id = Pubkey::new_unique();
-        let (mut bank_clients, payer, recent_blockhash) =
-            ProgramTest::new("pda_local", program_id, processor!(process_instruction))
-                .start()
-                .await;
+        let (mut bank_clients, payer, recent_blockhash) = ProgramTest::new(
+            "movie_review_comments",
+            program_id,
+            processor!(process_instruction),
+        )
+        .start()
+        .await;
 
         let (_mint, _mint_auth, init_mint_ix) = create_init_mint_ix(payer.pubkey(), program_id);
 
@@ -564,21 +565,23 @@ mod tests {
     #[tokio::test]
     async fn test_add_movie_review_instruction() {
         let program_id = Pubkey::new_unique();
-        let (mut banks_client, payer, recent_blockhash) =
-            ProgramTest::new("pda_local", program_id, processor!(process_instruction))
-                .start()
-                .await;
+        let (mut banks_client, payer, recent_blockhash) = ProgramTest::new(
+            "movie_review_comments",
+            program_id,
+            processor!(process_instruction),
+        )
+        .start()
+        .await;
 
         let (mint, mint_auth, init_mint_ix) = create_init_mint_ix(payer.pubkey(), program_id);
 
         let title: String = "Captain America".to_owned();
         const RATING: u8 = 3;
         let review: String = "Liked the movie".to_owned();
-
-        let (review_pda, review_bump) =
+        let (review_pda, _bump_seed) =
             Pubkey::find_program_address(&[payer.pubkey().as_ref(), title.as_bytes()], &program_id);
 
-        let (comment_pda, comment_bump) =
+        let (comment_pda, _bump_seed) =
             Pubkey::find_program_address(&[review_pda.as_ref(), b"comment"], &program_id);
 
         let init_ata_ix: Instruction = create_associated_token_account(
@@ -596,7 +599,6 @@ mod tests {
                 .try_into()
                 .unwrap(),
         );
-
         data_vec.append(&mut title.into_bytes());
         data_vec.push(RATING);
         data_vec.append(
