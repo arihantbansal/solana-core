@@ -2,19 +2,21 @@ use crate::error::StakeError;
 use crate::instruction::StakeInstruction;
 use crate::state::{StakeState, UserStakeInfo};
 use borsh::BorshSerialize;
+use mpl_token_metadata::ID as METADATA_PROGRAM_ID;
 use solana_program::{
     account_info::{next_account_info, AccountInfo},
     borsh::try_from_slice_unchecked,
     clock::Clock,
     entrypoint::ProgramResult,
     msg,
-    program::invoke_signed,
+    program::{invoke, invoke_signed},
     program_error::ProgramError,
     program_pack::IsInitialized,
     pubkey::Pubkey,
     system_instruction,
     sysvar::{rent::Rent, Sysvar},
 };
+use spl_token::ID as TOKEN_PROGRAM_ID;
 
 pub fn process_instruction(
     program_id: &Pubkey,

@@ -1,1 +1,1 @@
-# solana-npx-client-template
+# Solana NFT Staking Scripts
