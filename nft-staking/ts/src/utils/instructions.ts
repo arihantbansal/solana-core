@@ -45,10 +45,19 @@ export function createInitializeStakeAccountInstruction(
 export function createStakingInstruction(
 	nftHolder: PublicKey,
 	nftTokenAccount: PublicKey,
-	programId: PublicKey
+	programId: PublicKey,
+	nftMint: PublicKey,
+	nftEdition: PublicKey,
+	tokenProgram: PublicKey,
+	metadataProgram: PublicKey
 ): TransactionInstruction {
 	const [stakeAccount] = PublicKey.findProgramAddressSync(
 		[nftHolder.toBuffer(), nftTokenAccount.toBuffer()],
+		programId
+	);
+
+	const [delegateAuthority] = PublicKey.findProgramAddressSync(
+		[Buffer.from("authority")],
 		programId
 	);
 
@@ -68,6 +77,31 @@ export function createStakingInstruction(
 			{
 				pubkey: stakeAccount,
 				isWritable: true,
+				isSigner: false,
+			},
+			{
+				pubkey: nftMint,
+				isWritable: false,
+				isSigner: false,
+			},
+			{
+				pubkey: nftEdition,
+				isWritable: false,
+				isSigner: false,
+			},
+			{
+				pubkey: delegateAuthority,
+				isWritable: true,
+				isSigner: false,
+			},
+			{
+				pubkey: tokenProgram,
+				isWritable: false,
+				isSigner: false,
+			},
+			{
+				pubkey: metadataProgram,
+				isWritable: false,
 				isSigner: false,
 			},
 		],

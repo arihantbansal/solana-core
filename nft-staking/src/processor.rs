@@ -94,6 +94,11 @@ fn process_stake(program_id: &Pubkey, accounts: &[AccountInfo]) -> ProgramResult
     let user = next_account_info(account_info_iter)?;
     let nft_token_account = next_account_info(account_info_iter)?;
     let stake_state = next_account_info(account_info_iter)?;
+    let nft_mint = next_account_info(account_info_iter)?;
+    let nft_edition = next_account_info(account_info_iter)?;
+    let program_authority = next_account_info(account_info_iter)?;
+    let token_program = next_account_info(account_info_iter)?;
+    let metadata_program = next_account_info(account_info_iter)?;
 
     let (stake_state_pda, _bump_seed) = Pubkey::find_program_address(
         &[user.key.as_ref(), nft_token_account.key.as_ref()],
@@ -121,6 +126,53 @@ fn process_stake(program_id: &Pubkey, accounts: &[AccountInfo]) -> ProgramResult
     account_data.is_initialized = true;
 
     account_data.serialize(&mut &mut stake_state.data.borrow_mut()[..])?;
+
+    msg!("Approving delegation");
+    invoke(
+        &spl_token::instruction::approve(
+            &TOKEN_PROGRAM_ID,
+            nft_token_account.key,
+            program_authority.key,
+            user.key,
+            &[user.key],
+            1,
+        )?,
+        &[
+            nft_token_account.clone(),
+            program_authority.clone(),
+            user.clone(),
+            token_program.clone(),
+        ],
+    )?;
+
+    let (delegated_auth_pda, delegate_bump) =
+        Pubkey::find_program_address(&[b"authority"], program_id);
+
+    if delegated_auth_pda != *program_authority.key {
+        msg!("Invalid seeds for PDA");
+        return Err(StakeError::InvalidPda.into());
+    }
+
+    msg!("Freezing NFT token account");
+
+    invoke_signed(
+        &mpl_token_metadata::instruction::freeze_delegated_account(
+            METADATA_PROGRAM_ID,
+            *program_authority.key,
+            *nft_token_account.key,
+            *nft_edition.key,
+            *nft_mint.key,
+        ),
+        &[
+            program_authority.clone(),
+            nft_token_account.clone(),
+            nft_edition.clone(),
+            nft_mint.clone(),
+            metadata_program.clone(),
+        ],
+        &[&[b"authority", &[delegate_bump]]],
+    )?;
+
     Ok(())
 }
 
