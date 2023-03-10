@@ -45,11 +45,11 @@ export function createInitializeStakeAccountInstruction(
 export function createStakingInstruction(
 	nftHolder: PublicKey,
 	nftTokenAccount: PublicKey,
-	programId: PublicKey,
 	nftMint: PublicKey,
 	nftEdition: PublicKey,
 	tokenProgram: PublicKey,
-	metadataProgram: PublicKey
+	metadataProgram: PublicKey,
+	programId: PublicKey
 ): TransactionInstruction {
 	const [stakeAccount] = PublicKey.findProgramAddressSync(
 		[nftHolder.toBuffer(), nftTokenAccount.toBuffer()],
@@ -75,11 +75,6 @@ export function createStakingInstruction(
 				isSigner: false,
 			},
 			{
-				pubkey: stakeAccount,
-				isWritable: true,
-				isSigner: false,
-			},
-			{
 				pubkey: nftMint,
 				isWritable: false,
 				isSigner: false,
@@ -87,6 +82,11 @@ export function createStakingInstruction(
 			{
 				pubkey: nftEdition,
 				isWritable: false,
+				isSigner: false,
+			},
+			{
+				pubkey: stakeAccount,
+				isWritable: true,
 				isSigner: false,
 			},
 			{
@@ -112,10 +112,18 @@ export function createStakingInstruction(
 export function createRedeemInstruction(
 	nftHolder: PublicKey,
 	nftTokenAccount: PublicKey,
+	mint: PublicKey,
+	userStakeATA: PublicKey,
+	tokenProgram: PublicKey,
 	programId: PublicKey
 ): TransactionInstruction {
 	const [stakeAccount] = PublicKey.findProgramAddressSync(
 		[nftHolder.toBuffer(), nftTokenAccount.toBuffer()],
+		programId
+	);
+
+	const [mintAuth] = PublicKey.findProgramAddressSync(
+		[Buffer.from("mint")],
 		programId
 	);
 
@@ -136,6 +144,26 @@ export function createRedeemInstruction(
 				pubkey: stakeAccount,
 				isWritable: true,
 				isSigner: false,
+			},
+			{
+				pubkey: mint,
+				isWritable: true,
+				isSigner: false,
+			},
+			{
+				pubkey: mintAuth,
+				isWritable: false,
+				isSigner: false,
+			},
+			{
+				pubkey: userStakeATA,
+				isWritable: true,
+				isSigner: false,
+			},
+			{
+				pubkey: tokenProgram,
+				isSigner: false,
+				isWritable: false,
 			},
 		],
 		data: Buffer.from([2]),
@@ -145,10 +173,26 @@ export function createRedeemInstruction(
 export function createUnstakeInstruction(
 	nftHolder: PublicKey,
 	nftTokenAccount: PublicKey,
-	programId: PublicKey
+	programId: PublicKey,
+	nftMint: PublicKey,
+	nftEdition: PublicKey,
+	stakeMint: PublicKey,
+	userStakeATA: PublicKey,
+	tokenProgram: PublicKey,
+	metadataProgram: PublicKey
 ): TransactionInstruction {
 	const [stakeAccount] = PublicKey.findProgramAddressSync(
 		[nftHolder.toBuffer(), nftTokenAccount.toBuffer()],
+		programId
+	);
+
+	const [delegateAuthority] = PublicKey.findProgramAddressSync(
+		[Buffer.from("authority")],
+		programId
+	);
+
+	const [mintAuth] = PublicKey.findProgramAddressSync(
+		[Buffer.from("mint")],
 		programId
 	);
 
@@ -168,6 +212,61 @@ export function createUnstakeInstruction(
 			{
 				pubkey: stakeAccount,
 				isWritable: true,
+				isSigner: false,
+			},
+			{
+				pubkey: nftHolder,
+				isWritable: false,
+				isSigner: true,
+			},
+			{
+				pubkey: nftTokenAccount,
+				isWritable: true,
+				isSigner: false,
+			},
+			{
+				pubkey: nftMint,
+				isWritable: false,
+				isSigner: false,
+			},
+			{
+				pubkey: nftEdition,
+				isWritable: false,
+				isSigner: false,
+			},
+			{
+				pubkey: stakeAccount,
+				isWritable: true,
+				isSigner: false,
+			},
+			{
+				pubkey: delegateAuthority,
+				isWritable: true,
+				isSigner: false,
+			},
+			{
+				pubkey: stakeMint,
+				isWritable: true,
+				isSigner: false,
+			},
+			{
+				pubkey: mintAuth,
+				isWritable: false,
+				isSigner: false,
+			},
+			{
+				pubkey: userStakeATA,
+				isWritable: true,
+				isSigner: false,
+			},
+			{
+				pubkey: tokenProgram,
+				isWritable: false,
+				isSigner: false,
+			},
+			{
+				pubkey: metadataProgram,
+				isWritable: false,
 				isSigner: false,
 			},
 		],

@@ -109,24 +109,6 @@ fn process_stake(program_id: &Pubkey, accounts: &[AccountInfo]) -> ProgramResult
         return Err(StakeError::InvalidPda.into());
     }
 
-    let mut account_data =
-        try_from_slice_unchecked::<UserStakeInfo>(&stake_state.data.borrow()).unwrap();
-    if !account_data.is_initialized() {
-        msg!("Account not initialized");
-        return Err(StakeError::UninitializedAccount.into());
-    }
-
-    let clock = Clock::get()?;
-
-    account_data.token_account = *nft_token_account.key;
-    account_data.user_pubkey = *user.key;
-    account_data.stake_state = StakeState::Staked;
-    account_data.stake_start_time = clock.unix_timestamp;
-    account_data.last_stake_redeem = clock.unix_timestamp;
-    account_data.is_initialized = true;
-
-    account_data.serialize(&mut &mut stake_state.data.borrow_mut()[..])?;
-
     msg!("Approving delegation");
     invoke(
         &spl_token::instruction::approve(
@@ -173,6 +155,24 @@ fn process_stake(program_id: &Pubkey, accounts: &[AccountInfo]) -> ProgramResult
         &[&[b"authority", &[delegate_bump]]],
     )?;
 
+    let mut account_data =
+        try_from_slice_unchecked::<UserStakeInfo>(&stake_state.data.borrow()).unwrap();
+    if !account_data.is_initialized() {
+        msg!("Account not initialized");
+        return Err(StakeError::UninitializedAccount.into());
+    }
+
+    let clock = Clock::get()?;
+
+    account_data.token_account = *nft_token_account.key;
+    account_data.user_pubkey = *user.key;
+    account_data.stake_state = StakeState::Staked;
+    account_data.stake_start_time = clock.unix_timestamp;
+    account_data.last_stake_redeem = clock.unix_timestamp;
+    account_data.is_initialized = true;
+
+    account_data.serialize(&mut &mut stake_state.data.borrow_mut()[..])?;
+
     Ok(())
 }
 
@@ -181,12 +181,23 @@ fn process_redeem(program_id: &Pubkey, accounts: &[AccountInfo]) -> ProgramResul
     let user = next_account_info(account_info_iter)?;
     let nft_token_account = next_account_info(account_info_iter)?;
     let stake_state = next_account_info(account_info_iter)?;
+    let stake_mint = next_account_info(account_info_iter)?;
+    let stake_authority = next_account_info(account_info_iter)?;
+    let user_stake_ata = next_account_info(account_info_iter)?;
+    let token_program = next_account_info(account_info_iter)?;
 
     let (stake_state_pda, _bump_seed) = Pubkey::find_program_address(
         &[user.key.as_ref(), nft_token_account.key.as_ref()],
         program_id,
     );
     if stake_state_pda != *stake_state.key {
+        msg!("Invalid seeds for PDA");
+        return Err(StakeError::InvalidPda.into());
+    }
+
+    let (stake_auth_pda, stake_auth_bump) = Pubkey::find_program_address(&[b"mint"], program_id);
+
+    if *stake_authority.key != stake_auth_pda {
         msg!("Invalid seeds for PDA");
         return Err(StakeError::InvalidPda.into());
     }
@@ -222,6 +233,24 @@ fn process_redeem(program_id: &Pubkey, accounts: &[AccountInfo]) -> ProgramResul
     let redeem_amount = unix_time;
     msg!("Redeeming {} tokens", redeem_amount);
 
+    invoke_signed(
+        &spl_token::instruction::mint_to(
+            token_program.key,
+            stake_mint.key,
+            user_stake_ata.key,
+            stake_authority.key,
+            &[stake_authority.key],
+            redeem_amount.try_into().unwrap(),
+        )?,
+        &[
+            stake_mint.clone(),
+            user_stake_ata.clone(),
+            stake_authority.clone(),
+            token_program.clone(),
+        ],
+        &[&[b"mint", &[stake_auth_bump]]],
+    )?;
+
     account_data.last_stake_redeem = clock.unix_timestamp;
     account_data.serialize(&mut &mut stake_state.data.borrow_mut()[..])?;
     Ok(())
@@ -231,7 +260,15 @@ fn process_unstake(program_id: &Pubkey, accounts: &[AccountInfo]) -> ProgramResu
     let account_info_iter = &mut accounts.iter();
     let user = next_account_info(account_info_iter)?;
     let nft_token_account = next_account_info(account_info_iter)?;
+    let nft_mint = next_account_info(account_info_iter)?;
+    let nft_edition = next_account_info(account_info_iter)?;
     let stake_state = next_account_info(account_info_iter)?;
+    let program_authority = next_account_info(account_info_iter)?;
+    let stake_mint = next_account_info(account_info_iter)?;
+    let stake_authority = next_account_info(account_info_iter)?;
+    let user_stake_ata = next_account_info(account_info_iter)?;
+    let token_program = next_account_info(account_info_iter)?;
+    let metadata_program = next_account_info(account_info_iter)?;
 
     let (stake_state_pda, _bump_seed) = Pubkey::find_program_address(
         &[user.key.as_ref(), nft_token_account.key.as_ref()],
@@ -246,6 +283,53 @@ fn process_unstake(program_id: &Pubkey, accounts: &[AccountInfo]) -> ProgramResu
         msg!("Missing required signature");
         return Err(ProgramError::MissingRequiredSignature);
     }
+
+    let (delegated_auth_pda, delegate_bump) =
+        Pubkey::find_program_address(&[b"authority"], program_id);
+    if delegated_auth_pda != *program_authority.key {
+        msg!("Invalid seeds for PDA");
+        return Err(StakeError::InvalidPda.into());
+    }
+
+    let (stake_auth_pda, auth_bump) = Pubkey::find_program_address(&[b"mint"], program_id);
+    if *stake_authority.key != stake_auth_pda {
+        msg!("Invalid stake mint authority!");
+        return Err(StakeError::InvalidPda.into());
+    }
+
+    msg!("thawing NFT token account");
+    invoke_signed(
+        &mpl_token_metadata::instruction::thaw_delegated_account(
+            METADATA_PROGRAM_ID,
+            *program_authority.key,
+            *nft_token_account.key,
+            *nft_edition.key,
+            *nft_mint.key,
+        ),
+        &[
+            program_authority.clone(),
+            nft_token_account.clone(),
+            nft_edition.clone(),
+            nft_mint.clone(),
+            metadata_program.clone(),
+        ],
+        &[&[b"authority", &[delegate_bump]]],
+    )?;
+
+    msg!("Revoke delegation");
+    invoke(
+        &spl_token::instruction::revoke(
+            &TOKEN_PROGRAM_ID,
+            nft_token_account.key,
+            user.key,
+            &[user.key],
+        )?,
+        &[
+            nft_token_account.clone(),
+            user.clone(),
+            token_program.clone(),
+        ],
+    )?;
 
     let mut account_data =
         try_from_slice_unchecked::<UserStakeInfo>(&stake_state.data.borrow()).unwrap();
@@ -262,8 +346,25 @@ fn process_unstake(program_id: &Pubkey, accounts: &[AccountInfo]) -> ProgramResu
     let clock = Clock::get()?;
 
     let unix_time = clock.unix_timestamp - account_data.last_stake_redeem;
-    let redeem_amount = unix_time;
+    let redeem_amount = 100 * unix_time;
     msg!("Redeeming {} tokens", redeem_amount);
+    invoke_signed(
+        &spl_token::instruction::mint_to(
+            token_program.key,
+            stake_mint.key,
+            user_stake_ata.key,
+            stake_authority.key,
+            &[stake_authority.key],
+            redeem_amount.try_into().unwrap(),
+        )?,
+        &[
+            stake_mint.clone(),
+            user_stake_ata.clone(),
+            stake_authority.clone(),
+            token_program.clone(),
+        ],
+        &[&[b"mint", &[auth_bump]]],
+    )?;
 
     msg!("Setting stake state to unstaked");
     account_data.stake_state = StakeState::Unstaked;
