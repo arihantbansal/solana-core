@@ -1,8 +1,8 @@
 [features]
 seeds = false
 skip-lint = false
-[programs.devnet]
-hello_anchor = "4Ru1doMwFsUKQad1qMhr3cSPXipRs1jxyfKgAX15qbzX"
+[programs.localnet]
+counter_anchor = "Fg6PaFpoGXkYsidMpWTK6W2BeZ7FEfcYkg476zPFsLnS"
 
 [registry]
 url = "https://api.apr.dev"
