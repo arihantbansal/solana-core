@@ -8,7 +8,7 @@ hello_anchor = "4Ru1doMwFsUKQad1qMhr3cSPXipRs1jxyfKgAX15qbzX"
 url = "https://api.apr.dev"
 
 [provider]
-cluster = "devnet"
+cluster = "localnet"
 wallet = "/Users/arihantbansal/.config/solana/id.json"
 
 [scripts]
