@@ -6,7 +6,8 @@ describe("anchor-movie-review", () => {
   // Configure the client to use the local cluster.
   anchor.setProvider(anchor.AnchorProvider.env());
 
-  const program = anchor.workspace.AnchorMovieReview as Program<AnchorMovieReview>;
+  const program = anchor.workspace
+    .AnchorMovieReview as Program<AnchorMovieReview>;
 
   it("Is initialized!", async () => {
     // Add your test here.
