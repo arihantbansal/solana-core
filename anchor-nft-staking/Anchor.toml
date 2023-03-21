@@ -1,0 +1,15 @@
+[features]
+seeds = true
+skip-lint = false
+[programs.devnet]
+anchor_nft_staking = "EBoU59RVQ1V2Hx46FLdGwJT753DKVepK7NeAMvb1b47T"
+
+[registry]
+url = "https://api.apr.dev"
+
+[provider]
+cluster = "devnet"
+wallet = "/Users/arihantbansal/.config/solana/id.json"
+
+[scripts]
+test = "yarn run ts-mocha -p ./tsconfig.json -t 1000000 tests/**/*.ts"
