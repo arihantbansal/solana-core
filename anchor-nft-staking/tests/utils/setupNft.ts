@@ -4,7 +4,7 @@ import {
 	Metaplex,
 } from "@metaplex-foundation/js";
 import { createMint, getAssociatedTokenAddress } from "@solana/spl-token";
-import * as anchor from "@project-serum/anchor";
+import * as anchor from "@coral-xyz/anchor";
 
 export const setupNft = async (program, payer) => {
 	const metaplex = Metaplex.make(program.provider.connection)

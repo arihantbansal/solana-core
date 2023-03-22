@@ -9,7 +9,7 @@ use mpl_token_metadata::{
     instruction::{freeze_delegated_account, thaw_delegated_account},
     ID as MetadataTokenId,
 };
-declare_id!("EBoU59RVQ1V2Hx46FLdGwJT753DKVepK7NeAMvb1b47T");
+declare_id!("GPxuYM4Y8zpNqJC7YiL97yiaXRoQ1cdHey3c85hRviXP");
 
 #[program]
 pub mod anchor_nft_staking {

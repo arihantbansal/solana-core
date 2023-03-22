@@ -27,7 +27,7 @@ describe("anchor-nft-staking", () => {
 			await setupNft(program, wallet.payer));
 	});
 
-	it("Stakes", async () => {
+	it("stake", async () => {
 		await program.methods
 			.stake()
 			.accounts({
@@ -42,7 +42,7 @@ describe("anchor-nft-staking", () => {
 		expect(account.stakeState === "Staked");
 	});
 
-	it("Redeems", async () => {
+	it("redeem", async () => {
 		await program.methods
 			.redeem()
 			.accounts({
@@ -57,7 +57,7 @@ describe("anchor-nft-staking", () => {
 		const tokenAccount = await getAccount(provider.connection, tokenAddress);
 	});
 
-	it("Unstakes", async () => {
+	it("unstake", async () => {
 		await program.methods
 			.unstake()
 			.accounts({
