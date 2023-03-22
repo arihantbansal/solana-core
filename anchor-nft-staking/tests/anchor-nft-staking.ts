@@ -1,8 +1,10 @@
+import { AnchorNftStaking } from "./../target/types/anchor_nft_staking";
 import * as anchor from "@coral-xyz/anchor";
 import { Program } from "@coral-xyz/anchor";
-import { AnchorNftStaking } from "../target/types/anchor_nft_staking";
 import { setupNft } from "./utils/setupNft";
 import { PROGRAM_ID as METADATA_PROGRAM_ID } from "@metaplex-foundation/mpl-token-metadata";
+import { expect } from "chai";
+import { getAccount } from "@solana/spl-token";
 
 describe("anchor-nft-staking", () => {
 	const provider = anchor.AnchorProvider.env();
@@ -25,17 +27,51 @@ describe("anchor-nft-staking", () => {
 			await setupNft(program, wallet.payer));
 	});
 
-	it("stakes!", async () => {
-		const tx = await program.methods
+	it("Stakes", async () => {
+		await program.methods
 			.stake()
 			.accounts({
 				nftTokenAccount: nft.tokenAddress,
 				nftMint: nft.mintAddress,
-				nftEdition: nft.masterEfitionAddress,
+				nftEdition: nft.masterEditionAddress,
 				metadataProgram: METADATA_PROGRAM_ID,
 			})
 			.rpc();
-		console.log("Your transaction signature", tx);
+
+		const account = await program.account.userStakeInfo.fetch(stakeStatePda);
+		expect(account.stakeState === "Staked");
+	});
+
+	it("Redeems", async () => {
+		await program.methods
+			.redeem()
+			.accounts({
+				nftTokenAccount: nft.tokenAddress,
+				stakeMint: mint,
+				userStakeAta: tokenAddress,
+			})
+			.rpc();
+
+		const account = await program.account.userStakeInfo.fetch(stakeStatePda);
+		expect(account.stakeState === "Unstaked");
+		const tokenAccount = await getAccount(provider.connection, tokenAddress);
+	});
+
+	it("Unstakes", async () => {
+		await program.methods
+			.unstake()
+			.accounts({
+				nftTokenAccount: nft.tokenAddress,
+				nftMint: nft.mintAddress,
+				nftEdition: nft.masterEditionAddress,
+				metadataProgram: METADATA_PROGRAM_ID,
+				stakeMint: mint,
+				userStakeAta: tokenAddress,
+			})
+			.rpc();
+
+		const account = await program.account.userStakeInfo.fetch(stakeStatePda);
+		expect(account.stakeState === "Unstaked");
 	});
 });
 
