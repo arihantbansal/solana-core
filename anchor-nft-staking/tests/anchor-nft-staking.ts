@@ -2,6 +2,7 @@ import * as anchor from "@coral-xyz/anchor";
 import { Program } from "@coral-xyz/anchor";
 import { AnchorNftStaking } from "../target/types/anchor_nft_staking";
 import { setupNft } from "./utils/setupNft";
+import { PROGRAM_ID as METADATA_PROGRAM_ID } from "@metaplex-foundation/mpl-token-metadata";
 
 describe("anchor-nft-staking", () => {
 	const provider = anchor.AnchorProvider.env();
@@ -24,8 +25,16 @@ describe("anchor-nft-staking", () => {
 			await setupNft(program, wallet.payer));
 	});
 
-	it("Is initialized!", async () => {
-		const tx = await program.methods.initialize().rpc();
+	it("stakes!", async () => {
+		const tx = await program.methods
+			.stake()
+			.accounts({
+				nftTokenAccount: nft.tokenAddress,
+				nftMint: nft.mintAddress,
+				nftEdition: nft.masterEfitionAddress,
+				metadataProgram: METADATA_PROGRAM_ID,
+			})
+			.rpc();
 		console.log("Your transaction signature", tx);
 	});
 });
