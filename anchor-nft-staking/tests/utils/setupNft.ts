@@ -5,20 +5,24 @@ import {
 } from "@metaplex-foundation/js";
 import { createMint, getAssociatedTokenAddress } from "@solana/spl-token";
 import * as anchor from "@coral-xyz/anchor";
+import { AnchorNftStaking } from "../../target/types/anchor_nft_staking";
 
-export const setupNft = async (program, payer) => {
+export const setupNft = async (
+	program: anchor.Program<AnchorNftStaking>,
+	payer: anchor.web3.Keypair
+) => {
 	const metaplex = Metaplex.make(program.provider.connection)
 		.use(keypairIdentity(payer))
 		.use(bundlrStorage());
 
 	const nft = await metaplex.nfts().create({
 		uri: "",
-		name: "Test nft",
+		name: "Test NFT",
 		sellerFeeBasisPoints: 0,
 	});
 
-	console.log("nft metadata pubkey: ", nft.metadataAddress.toBase58());
-	console.log("nft token address: ", nft.tokenAddress.toBase58());
+	console.log("NFT Metadata Pubkey: ", nft.metadataAddress.toBase58());
+	console.log("NFT Token Address: ", nft.tokenAddress.toBase58());
 	const [delegatedAuthPda] = await anchor.web3.PublicKey.findProgramAddress(
 		[Buffer.from("authority")],
 		program.programId
@@ -28,8 +32,8 @@ export const setupNft = async (program, payer) => {
 		program.programId
 	);
 
-	console.log("delegated authority pda: ", delegatedAuthPda.toBase58());
-	console.log("stake state pda: ", stakeStatePda.toBase58());
+	console.log("Delegated Authority PDA: ", delegatedAuthPda.toBase58());
+	console.log("Stake State PDA: ", stakeStatePda.toBase58());
 	const [mintAuth] = await anchor.web3.PublicKey.findProgramAddress(
 		[Buffer.from("mint")],
 		program.programId
@@ -42,7 +46,7 @@ export const setupNft = async (program, payer) => {
 		null,
 		2
 	);
-	console.log("Mint pubkey: ", mint.toBase58());
+	console.log("Mint Pubkey: ", mint.toBase58());
 
 	const tokenAddress = await getAssociatedTokenAddress(mint, payer.publicKey);
 
