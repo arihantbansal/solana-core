@@ -1,1 +1,1 @@
-# [Solana Core](https://buildspace.so/p/solana-core) by [buildspace](https://buildspace.so)
+smol projects i've built while learning solana
